@@ -15,11 +15,12 @@ st.markdown("Enter the details about the movie below:")
 # Input form
 with st.form("input_form"):
     budget = st.number_input("💰 Budget (in USD)", min_value=0, value=1000000, step=100000)
-    popularity = st.slider("📊 Popularity", 0.0, 300.0, 50.0)
+    popularity = st.slider("📊 Popularity (Raw Scale, e.g. max ~300)", 0.0, 300.0, 50.0)
     runtime = st.slider("⏱️ Runtime (minutes)", 30.0, 240.0, 120.0)
     vote_average = st.slider("⭐ Average Vote", 0.0, 10.0, 5.0)
     vote_count = st.number_input("🗳️ Vote Count", min_value=0, value=100, step=10)
-    cast_popularity = st.slider("🌟 Cast Popularity (1-5)", 1, 5, 3)
+    cast_popularity = st.slider("🌟 Cast Popularity (1-10)", 1, 10, 5)
+
 
     # Genre selection
     genres = [
@@ -38,11 +39,11 @@ if submit:
 
     # Set numerical inputs
     input_data["budget"] = budget
-    input_data["popularity"] = popularity
+    input_data["popularity"] = (popularity / 300) * 100
     input_data["runtime"] = runtime
     input_data["vote_average"] = vote_average
     input_data["vote_count"] = vote_count
-    input_data["cast_popularity"] = cast_popularity
+    input_data["cast_popularity"] = cast_popularity / 2  # Scale from 1–10 to 0.5–5
 
     # Set selected genres
     for genre in selected_genres:
