@@ -3,93 +3,82 @@ import pandas as pd
 import numpy as np
 import joblib
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-import base64
-import os
 
 # Page config
 st.set_page_config(page_title="🎬 Movie Hit or Flop Predictor", layout="centered")
 
-# Custom CSS loader
-def local_css(file_name):
-    if os.path.exists(file_name):
-        with open(file_name) as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+# Custom styling
+st.markdown("""
+    <style>
+        body, .stApp {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            font-family: "Segoe UI", sans-serif;
+        }
 
-local_css("style.css")
+        input, select, textarea {
+            background-color: #f9f9f9 !important;
+            color: #000000 !important;
+            border: 1px solid #cccccc !important;
+            border-radius: 6px;
+            padding: 6px;
+        }
 
+        .stSlider > div[data-baseweb="slider"] > div {
+            background-color: transparent !important;
+        }
+
+        .stSlider > div[data-baseweb="slider"] > div > div:first-child {
+            background-color: #4a90e2 !important;
+            border-radius: 4px;
+        }
+
+        .stSlider > div[data-baseweb="slider"] span[role="slider"] {
+            background-color: #ffffff !important;
+            border: 2px solid #4a90e2 !important;
+            border-radius: 50%;
+            width: 20px !important;
+            height: 20px !important;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+            margin-top: -8px;
+        }
+
+        .stMultiSelect, .stSelectbox {
+            background-color: #f7f7f7 !important;
+            color: #000000 !important;
+        }
+
+        svg text {
+            fill: #000000 !important;
+        }
+
+        .stSlider mark,
+        .stSlider mark::before,
+        .stSlider mark::after {
+            background: none !important;
+            color: #000000 !important;
+            border: none !important;
+            box-shadow: none !important;
+            font-weight: normal !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Title
 st.title("🎬 Movie Hit or Flop Predictor")
 
-# Load default model
+# Load model and columns
 model = joblib.load("model.pkl")
 model_columns = joblib.load("model_columns.pkl")
 
-# Upload CSV for training
-st.subheader("📤 Train Your Own Model from CSV")
-uploaded_csv = st.file_uploader("Upload a CSV file with features and a 'success' column", type=["csv"])
-train_button = st.button("🧠 Train Model")
-
-if uploaded_csv is not None and train_button:
-    try:
-        df = pd.read_csv(uploaded_csv)
-        if 'success' not in df.columns:
-            st.error("❌ CSV must contain a 'success' column (1=Hit, 0=Flop)")
-        else:
-            st.success("✅ CSV uploaded. Training model...")
-
-            y = df["success"]
-            X = df.drop("success", axis=1)
-
-            X = pd.get_dummies(X)
-
-            scaler = StandardScaler()
-            X_scaled = scaler.fit_transform(X)
-
-            X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
-            clf = RandomForestClassifier(n_estimators=100, random_state=42)
-            clf.fit(X_train, y_train)
-
-            y_pred = clf.predict(X_test)
-            accuracy = accuracy_score(y_test, y_pred)
-            precision = precision_score(y_test, y_pred, zero_division=0)
-            recall = recall_score(y_test, y_pred, zero_division=0)
-            f1 = f1_score(y_test, y_pred, zero_division=0)
-
-            joblib.dump(clf, "model.pkl")
-            joblib.dump(X.columns.tolist(), "model_columns.pkl")
-            model = clf
-            model_columns = X.columns.tolist()
-
-            st.success("🎉 Model trained and loaded for predictions!")
-
-            st.markdown("### 🧪 Training Metrics")
-            st.write(f"✅ **Accuracy:** {accuracy:.2f}")
-            st.write(f"✅ **Precision:** {precision:.2f}")
-            st.write(f"✅ **Recall:** {recall:.2f}")
-            st.write(f"✅ **F1 Score:** {f1:.2f}")
-
-            def get_download_link(file_path, file_label):
-                with open(file_path, "rb") as f:
-                    b64 = base64.b64encode(f.read()).decode()
-                    href = f'<a href="data:file/pkl;base64,{b64}" download="{file_path}">📥 Download {file_label}</a>'
-                    return href
-
-            st.markdown("---")
-            st.markdown("### 📥 Download Trained Artifacts")
-            st.markdown(get_download_link("model.pkl", "Model"), unsafe_allow_html=True)
-            st.markdown(get_download_link("model_columns.pkl", "Model Columns"), unsafe_allow_html=True)
-
-    except Exception as e:
-        st.error(f"⚠️ Error: {e}")
+st.markdown("Enter the details about the movie below:")
 
 # Input form
-st.markdown("### 🎯 Enter movie details for prediction")
 with st.form("input_form"):
-    budget = st.number_input("💰 Budget (USD)", min_value=0, value=1000000, step=100000)
-    popularity = st.slider("📊 Popularity (0-100)", 0.0, 100.0, 50.0)
+    budget = st.number_input("💰 Budget (in USD)", min_value=0, value=1000000, step=100000)
+    popularity = st.slider("📊 Popularity (0-100 scale)", 0.0, 100.0, 50.0)
     runtime = st.slider("⏱️ Runtime (minutes)", 30.0, 240.0, 120.0)
     vote_average = st.slider("⭐ Average Vote", 0.0, 10.0, 5.0)
     vote_count = st.number_input("🗳️ Vote Count", min_value=0, value=100, step=10)
@@ -104,9 +93,11 @@ with st.form("input_form"):
 
     submit = st.form_submit_button("Predict")
 
-# Prediction section
+# On submit
 if submit:
     input_data = {col: 0 for col in model_columns}
+
+    # Numeric features
     input_data["budget"] = budget
     input_data["popularity"] = popularity
     input_data["runtime"] = runtime
@@ -114,25 +105,29 @@ if submit:
     input_data["vote_count"] = vote_count
     input_data["cast_popularity"] = cast_popularity
 
+    # One-hot encode genres
     for genre in selected_genres:
         col_name = f"genres_{genre}"
         if col_name in input_data:
             input_data[col_name] = 1
 
+    # Convert to DataFrame
     input_df = pd.DataFrame([input_data])
+
+    # Make prediction
     prediction = model.predict(input_df)[0]
     probability = model.predict_proba(input_df)[0]
 
+    # Display result
     st.subheader("📈 Prediction Result")
     result = "✅ HIT" if prediction == 1 else "❌ FLOP"
     confidence = round(np.max(probability) * 100, 2)
+
     st.success(f"**Predicted: {result} (Confidence: {confidence}%)**")
 
     # Bar chart
     fig, ax = plt.subplots()
-    labels = ['Flop', 'Hit']
-    colors = ['#FF4B4B', '#00CC96']
-    ax.bar(labels, probability, color=colors)
+    ax.bar(["Flop", "Hit"], probability, color=['#FF4B4B', '#00CC96'])
     ax.set_ylabel("Probability")
     ax.set_ylim([0, 1])
     ax.set_title("Prediction Confidence")
