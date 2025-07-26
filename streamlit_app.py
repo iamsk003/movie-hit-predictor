@@ -8,6 +8,13 @@ import base64
 # Set page config
 st.set_page_config(page_title="🎬 Movie Hit or Flop Predictor", layout="centered")
 
+# Inject CSS styling for black background and white text
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+local_css("style.css")
+
 # Custom CSS for dark mode and layout
 st.markdown("""
     <style>
