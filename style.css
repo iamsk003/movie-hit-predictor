@@ -1,0 +1,34 @@
+/* Make background black */
+body {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+}
+
+/* Streamlit's default text */
+html, body, .css-18e3th9 {
+    color: #FFFFFF !important;
+}
+
+/* Make widget labels white */
+label, .st-bb, .st-bc, .st-bf {
+    color: #FFFFFF !important;
+}
+
+/* Sidebar (if any) */
+.stSidebar {
+    background-color: #111111 !important;
+    color: #FFFFFF !important;
+}
+
+/* Text input and slider styles */
+input, .stTextInput > div > div > input,
+.stNumberInput input, .stSlider {
+    color: #FFFFFF !important;
+    background-color: #1e1e1e !important;
+    border-color: #555555 !important;
+}
+
+/* Fix bar chart text contrast */
+svg text {
+    fill: #FFFFFF !important;
+}
