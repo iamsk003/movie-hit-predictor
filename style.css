@@ -21,7 +21,7 @@ input, select, textarea {
 
 /* Active slider track */
 .stSlider > div[data-baseweb="slider"] > div > div:first-child {
-    background-color: #4a90e2 !important;
+   
     border-radius: 4px;
 }
 
