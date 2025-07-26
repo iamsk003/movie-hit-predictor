@@ -1,50 +1,48 @@
-/* Light background */
+/* Overall light theme */
 body, .stApp {
     background-color: #ffffff !important;
     color: #000000 !important;
+    font-family: "Segoe UI", sans-serif;
 }
 
-/* Default text color */
-html, body, .st-bb, .st-bc, .st-bf {
+/* Clean input fields */
+input, select, textarea {
+    background-color: #f9f9f9 !important;
     color: #000000 !important;
-}
-
-/* Inputs */
-input, .stTextInput > div > div > input,
-.stNumberInput input {
-    color: #000000 !important;
-    background-color: #f7f7f7 !important;
     border: 1px solid #cccccc !important;
+    border-radius: 6px;
+    padding: 6px;
 }
 
-/* Sliders */
-.stSlider > div {
-    background: transparent !important;
-}
-.stSlider .st-b0 {
-    background-color: #e0e0e0 !important;  /* slider track */
-}
-.stSlider .st-b3 {
-    background-color: #007BFF !important;  /* active track */
-}
-.stSlider .st-b1 {
-    background-color: #ffffff !important;  /* slider handle */
-    border: 2px solid #007BFF !important;
+/* Slider: Remove background */
+.stSlider > div[data-baseweb="slider"] > div {
+    background-color: transparent !important;
 }
 
-/* Select box, multiselect */
+/* Active slider track */
+.stSlider > div[data-baseweb="slider"] > div > div:first-child {
+    background-color: #4a90e2 !important;
+    border-radius: 4px;
+}
+
+/* Slider handle */
+.stSlider > div[data-baseweb="slider"] span[role="slider"] {
+    background-color: #ffffff !important;
+    border: 2px solid #4a90e2 !important;
+    border-radius: 50%;
+    width: 20px !important;
+    height: 20px !important;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+    margin-top: -8px;
+}
+
+/* Multiselect & Selectbox */
 .stMultiSelect, .stSelectbox {
     background-color: #f7f7f7 !important;
     color: #000000 !important;
 }
 
-/* Sidebar (if used) */
-.stSidebar {
-    background-color: #f0f2f6 !important;
-    color: #000000 !important;
-}
-
-/* Fix text contrast in matplotlib / altair / charts */
+/* Charts readable text */
 svg text {
     fill: #000000 !important;
 }
