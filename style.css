@@ -46,3 +46,12 @@ input, select, textarea {
 svg text {
     fill: #000000 !important;
 }
+.stSlider mark,
+.stSlider div[data-baseweb="slider"] mark {
+    background: none !important;
+    color: #000000 !important;
+    border: none !important;
+    padding: 0 !important;
+    font-weight: normal;
+    box-shadow: none !important;
+}
