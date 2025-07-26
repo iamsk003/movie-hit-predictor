@@ -23,18 +23,9 @@ local_css("style.css")
 
 st.title("🎬 Movie Hit or Flop Predictor")
 
-# Upload pretrained model section
-st.sidebar.header("📦 Upload Your Model")
-model_file = st.sidebar.file_uploader("Upload Model (.pkl)", type=["pkl"])
-columns_file = st.sidebar.file_uploader("Upload Model Columns (.pkl)", type=["pkl"])
-
-# Load default or uploaded model
-if model_file is not None and columns_file is not None:
-    model = joblib.load(model_file)
-    model_columns = joblib.load(columns_file)
-else:
-    model = joblib.load("model.pkl")
-    model_columns = joblib.load("model_columns.pkl")
+# Load default model
+model = joblib.load("model.pkl")
+model_columns = joblib.load("model_columns.pkl")
 
 # Upload CSV for training
 st.subheader("📤 Train Your Own Model from CSV")
@@ -52,26 +43,21 @@ if uploaded_csv is not None and train_button:
             y = df["success"]
             X = df.drop("success", axis=1)
 
-            # One-hot encode categoricals
             X = pd.get_dummies(X)
 
-            # Scale
             scaler = StandardScaler()
             X_scaled = scaler.fit_transform(X)
 
-            # Split and train
             X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
             clf = RandomForestClassifier(n_estimators=100, random_state=42)
             clf.fit(X_train, y_train)
 
-            # Evaluate
             y_pred = clf.predict(X_test)
             accuracy = accuracy_score(y_test, y_pred)
             precision = precision_score(y_test, y_pred, zero_division=0)
             recall = recall_score(y_test, y_pred, zero_division=0)
             f1 = f1_score(y_test, y_pred, zero_division=0)
 
-            # Save model
             joblib.dump(clf, "model.pkl")
             joblib.dump(X.columns.tolist(), "model_columns.pkl")
             model = clf
@@ -85,7 +71,6 @@ if uploaded_csv is not None and train_button:
             st.write(f"✅ **Recall:** {recall:.2f}")
             st.write(f"✅ **F1 Score:** {f1:.2f}")
 
-            # Download buttons
             def get_download_link(file_path, file_label):
                 with open(file_path, "rb") as f:
                     b64 = base64.b64encode(f.read()).decode()
@@ -110,7 +95,6 @@ with st.form("input_form"):
     vote_count = st.number_input("🗳️ Vote Count", min_value=0, value=100, step=10)
     cast_popularity = st.slider("🌟 Cast Popularity (1-10)", 1, 10, 5)
 
-    # Genres
     genres = [
         "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary", "Drama",
         "Family", "Fantasy", "Foreign", "History", "Horror", "Music", "Mystery",
@@ -130,15 +114,12 @@ if submit:
     input_data["vote_count"] = vote_count
     input_data["cast_popularity"] = cast_popularity
 
-    # Set genres
     for genre in selected_genres:
         col_name = f"genres_{genre}"
         if col_name in input_data:
             input_data[col_name] = 1
 
     input_df = pd.DataFrame([input_data])
-
-    # Predict
     prediction = model.predict(input_df)[0]
     probability = model.predict_proba(input_df)[0]
 
@@ -147,7 +128,7 @@ if submit:
     confidence = round(np.max(probability) * 100, 2)
     st.success(f"**Predicted: {result} (Confidence: {confidence}%)**")
 
-    # Chart
+    # Bar chart
     fig, ax = plt.subplots()
     labels = ['Flop', 'Hit']
     colors = ['#FF4B4B', '#00CC96']
