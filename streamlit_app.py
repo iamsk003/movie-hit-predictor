@@ -15,7 +15,7 @@ st.markdown("Enter the details about the movie below:")
 # Input form
 with st.form("input_form"):
     budget = st.number_input("💰 Budget (in USD)", min_value=0, value=1000000, step=100000)
-    popularity = st.slider("📊 Popularity (Raw Scale, e.g. max ~300)", 0.0, 300.0, 50.0)
+    popularity = st.slider("📊 Popularity (Raw Scale, e.g. max ~100)", 0.0, 100.0, 5.0)
     runtime = st.slider("⏱️ Runtime (minutes)", 30.0, 240.0, 120.0)
     vote_average = st.slider("⭐ Average Vote", 0.0, 10.0, 5.0)
     vote_count = st.number_input("🗳️ Vote Count", min_value=0, value=100, step=10)
