@@ -1,65 +1,56 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import joblib
 
-# Load model and expected columns
+# Load model and feature names
 model = joblib.load("model.pkl")
 model_columns = joblib.load("model_columns.pkl")
 
-st.title("🎬 Movie Hit or Flop Predictor")
-st.markdown("Fill in the movie details to predict if it will be a **Hit or Flop**.")
+st.set_page_config(page_title="Movie Hit Predictor", page_icon="🎬")
+st.title("🎬 Movie Hit or Flop Prediction")
 
-# Basic numeric inputs
-budget = st.number_input("Budget (in INR)", value=50000000)
-popularity = st.slider("Popularity Score (0–100)", 0.0, 100.0, 50.0)
-runtime = st.number_input("Runtime (minutes)", value=120)
-vote_average = st.slider("Average Vote (0–10)", 0.0, 10.0, 7.0)
-vote_count = st.number_input("Vote Count", value=2000)
-cast_popularity = st.slider("Cast Popularity (0–10)", 0.0, 10.0, 5.0)
+# Input fields
+budget = st.number_input("💰 Budget ($)", min_value=10000, max_value=500000000, step=100000, value=50000000)
+popularity = st.slider("📊 Popularity", 0.0, 100.0, 50.0)
+runtime = st.slider("🎞 Runtime (minutes)", 60, 300, 120)
+vote_average = st.slider("⭐ Average Vote", 0.0, 10.0, 7.0)
+vote_count = st.number_input("🗳 Vote Count", 0, 100000, 2000)
+cast_popularity = st.slider("🎭 Cast Popularity", 0.0, 10.0, 5.0)
 
-# Genre checkboxes
-st.markdown("🎭 Select applicable genres:")
-genres_selected = {
-    "genres_Action": st.checkbox("Action"),
-    "genres_Adventure": st.checkbox("Adventure"),
-    "genres_Sci-Fi": st.checkbox("Sci-Fi"),
-    "genres_Drama": st.checkbox("Drama"),
-    "genres_Comedy": st.checkbox("Comedy")
+# Genre checkboxes (dynamic from model_columns)
+genre_cols = [col for col in model_columns if col.startswith("genres_")]
+genres_input = {
+    col: st.checkbox(col.replace("genres_", ""), value=False)
+    for col in genre_cols
 }
 
-# Prepare user input dictionary
-input_data = {
+# Build input vector
+input_data = {col: 0 for col in model_columns}  # start with all zeros
+input_data.update({
     "budget": budget,
     "popularity": popularity,
     "runtime": runtime,
     "vote_average": vote_average,
     "vote_count": vote_count,
     "cast_popularity": cast_popularity,
-    **genres_selected
-}
+    **genres_input
+})
 
-# Create DataFrame and align columns
-X_input = pd.DataFrame([input_data])
-X_input = X_input.reindex(columns=model_columns, fill_value=0)
+# Convert to DataFrame
+input_df = pd.DataFrame([input_data])
 
 # Prediction
-if st.button("Predict Movie Success"):
-    prediction = model.predict(X_input)[0]
-    proba = model.predict_proba(X_input)[0]
+if st.button("🎯 Predict Movie Success"):
+    prediction = model.predict(input_df)[0]
+    proba = model.predict_proba(input_df)[0]
 
-    st.subheader("🎯 Prediction:")
+    st.subheader("📈 Prediction Result")
     if prediction == 1:
-        st.success("✅ This movie is likely to be a **HIT** 🎉")
+        st.success(f"✅ Predicted: **HIT** (Confidence: {round(proba[1]*100, 2)}%)")
     else:
-        st.error("❌ This movie is likely to be a **FLOP**.")
+        st.error(f"❌ Predicted: **FLOP** (Confidence: {round(proba[0]*100, 2)}%)")
 
-    # Plot bar chart
-    st.subheader("📊 Confidence Level:")
-    labels = ["Flop", "Hit"]
-    fig, ax = plt.subplots()
-    ax.bar(labels, proba * 100, color=["red", "green"])
-    ax.set_ylabel("Probability (%)")
-    ax.set_ylim(0, 100)
-    st.pyplot(fig)
+    st.markdown("---")
+    st.write("🔍 Debug Info (Input to Model):")
+    st.dataframe(input_df)
