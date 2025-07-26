@@ -1,61 +1,65 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
 
-# Load trained model and expected feature columns
-with open("model.pkl", "rb") as f:
-    model = joblib.load(f)
+# Load model and columns
+model = joblib.load("model.pkl")
+model_columns = joblib.load("model_columns.pkl")
 
-with open("model_columns.pkl", "rb") as f:
-    model_columns = joblib.load(f)
+# App Title
+st.title("🎬 Movie Hit or Flop Predictor")
 
-st.set_page_config(page_title="Movie Hit Predictor", layout="centered")
-st.title("🎬 Movie Hit/Flop Prediction App")
+st.markdown("Enter the details about the movie below:")
 
-st.markdown("""
-Enter the movie details below to predict whether your movie will be a **HIT** or **FLOP** based on machine learning.
-""")
+# Input form
+with st.form("input_form"):
+    budget = st.number_input("💰 Budget (in USD)", min_value=0, value=1000000, step=100000)
+    popularity = st.slider("📊 Popularity", 0.0, 300.0, 50.0)
+    runtime = st.slider("⏱️ Runtime (minutes)", 30.0, 240.0, 120.0)
+    vote_average = st.slider("⭐ Average Vote", 0.0, 10.0, 5.0)
+    vote_count = st.number_input("🗳️ Vote Count", min_value=0, value=100, step=10)
+    cast_popularity = st.slider("🌟 Cast Popularity (1-5)", 1, 5, 3)
 
-# Step 1: Initialize input data with 0s
-input_data = {col: 0 for col in model_columns}
+    # Genre selection
+    genres = [
+        "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary", "Drama",
+        "Family", "Fantasy", "Foreign", "History", "Horror", "Music", "Mystery",
+        "Romance", "Science Fiction", "TV Movie", "Thriller", "War", "Western"
+    ]
+    selected_genres = st.multiselect("🎞️ Select Genres", genres)
 
-# Step 2: Collect numeric inputs
-input_data["budget"] = st.number_input("💰 Budget (in ₹)", value=50000000)
-input_data["popularity"] = st.number_input("🔥 Popularity Score", value=50.0)
-input_data["runtime"] = st.number_input("🎞 Runtime (minutes)", value=120)
-input_data["vote_average"] = st.slider("⭐ Average Rating", 0.0, 10.0, 7.0)
-input_data["vote_count"] = st.number_input("🗳 Vote Count", value=2000)
-input_data["cast_popularity"] = st.number_input("👥 Cast Popularity Score", value=5.0)
+    submit = st.form_submit_button("Predict")
 
-# Step 3: Genre selection based on available columns
-st.markdown("🎭 **Select Genres**")
-genre_cols = [col for col in model_columns if col.startswith("genres_")]
-for genre_col in genre_cols:
-    genre_name = genre_col.replace("genres_", "")
-    if st.checkbox(genre_name):
-        input_data[genre_col] = 1
+# When form is submitted
+if submit:
+    # Initialize data dictionary with zeros
+    input_data = {col: 0 for col in model_columns}
 
-# Step 4: Build input dataframe
-input_df = pd.DataFrame([input_data])
+    # Set numerical inputs
+    input_data["budget"] = budget
+    input_data["popularity"] = popularity
+    input_data["runtime"] = runtime
+    input_data["vote_average"] = vote_average
+    input_data["vote_count"] = vote_count
+    input_data["cast_popularity"] = cast_popularity
 
-# Optional Debug: show model inputs
-# st.write("🔍 Input DataFrame:")
-# st.dataframe(input_df)
+    # Set selected genres
+    for genre in selected_genres:
+        col_name = f"genres_{genre}"
+        if col_name in input_data:
+            input_data[col_name] = 1
 
-# Step 5: Predict
-if st.button("🚀 Predict Movie Success"):
+    # Convert to DataFrame
+    input_df = pd.DataFrame([input_data])
+
+    # Make prediction
     prediction = model.predict(input_df)[0]
-    proba = model.predict_proba(input_df)[0][prediction] * 100
+    probability = model.predict_proba(input_df)[0]
 
+    # Output
     st.subheader("📈 Prediction Result")
-    if prediction == 1:
-        st.success(f"✅ Predicted: **HIT** (Confidence: {proba:.1f}%)")
-    else:
-        st.error(f"❌ Predicted: **FLOP** (Confidence: {proba:.1f}%)")
+    result = "✅ HIT" if prediction == 1 else "❌ FLOP"
+    confidence = round(np.max(probability) * 100, 2)
 
-    # Extra: show full probability breakdown
-    st.markdown("### 🔢 Prediction Probabilities")
-    st.write({
-        "Flop (0)": f"{model.predict_proba(input_df)[0][0]*100:.1f}%",
-        "Hit (1)": f"{model.predict_proba(input_df)[0][1]*100:.1f}%"
-    })
+    st.success(f"**Predicted: {result} (Confidence: {confidence}%)**")
